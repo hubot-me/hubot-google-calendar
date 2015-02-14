@@ -58,7 +58,7 @@ module.exports = (robot) ->
     robot.emit "googleapi:request",
       service: "calendar"
       version: "v3"
-      endpoint: "calendar.events.list"
+      endpoint: "events.list"
       params:
         timeMin: "2015-02-01T00:00:00.000Z"
         timeMax: "2015-02-28T00:00:00.000Z"
