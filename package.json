@@ -1,0 +1,34 @@
+{
+  "name": "hubot-google-calendar",
+  "description": "Hubot monitors your google calendar and updates your status",
+  "version": "0.0.1",
+  "author": "Hubot-me <hubot.me@example.com>",
+  "license": "MIT",
+  "keywords": [
+    "hubot",
+    "hubot-scripts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hubot-me/hubot-google-calendar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hubot-me/hubot-google-calendar/issues"
+  },
+  "dependencies": {
+    "coffee-script": "~1.6",
+    "cheerio": "~0.18.0",
+    "hubot-googleapi": "~0.2.3",
+    "cron": "~1.0.6"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*",
+    "sinon-chai": "*",
+    "sinon": "*"
+  },
+  "main": "index.coffee",
+  "scripts": {
+    "test": "script/test"
+  }
+}
