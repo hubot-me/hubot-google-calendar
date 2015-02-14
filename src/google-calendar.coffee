@@ -40,37 +40,34 @@ module.exports = (robot) ->
   #   #   update their status.
 
   robot.respond /gcal set (.*)/i, (msg)->
+    console.log msg
+    console.log robot
     # in the brain, set the calendar name for that user to msg.match[1]
     calendarId   = msg.match[1]
-    userId       = msg.user.id
-    gcal         = robot.brain.get 'gcal'
-    gcal[userId] = calendarId
+    userId       = msg.envelope.user.id
+    gcal         = robot.brain.get('gcal') || {}
+    gcal[userId] =
+      id: userId
+      calendarId: calendarId
 
     robot.brain.set 'gcal', gcal
 
-  # robot.respond /gcal me/i, (msg)->
-  #   robot.emit "googleapi:request",
-  #     service: "analytics"
-  #     version: "v3"
-  #     endpoint: "management.profiles.list"
-  #     params:                               # parameters to pass to API
-  #     accountId: '~all'
-  #     webPropertyId: '~all'
-  #     callback: (err, data)->               # node-style callback
-  #       return console.log(err) if err
-  #       console.log data.items.map((item)->
-  #       "#{item.name} - #{item.websiteUrl}"
-  #       ).join("\n")
-  #   # show all of their appointments for today
-
-  # robot.respond //i, (msg) ->
-  #   cheerio = require('cheerio')
-  #   robot.http('http://en.wikiquote.org/wiki/Archer_%28TV_series%29').get() (error, result, body) ->
-  #     if error
-  #       msg.send "Encountered an error :( #{error}"
-  #       return
-  #     $ = cheerio.load(body)
-  #     choices = $('dl').map (i, el) ->
-  #       $(this).text()
-  #     msg.send msg.random choices
+  robot.respond /gcal me/i, (msg)->
+    gcal   = robot.brain.get('gcal')
+    userId = msg.envelope.user.id
+    robot.emit "googleapi:request",
+      service: "calendar"
+      version: "v3"
+      endpoint: "calendar.events.list"
+      params:
+        timeMin: "2015-02-01T00:00:00.000Z"
+        timeMax: "2015-02-28T00:00:00.000Z"
+        calendarId: gcal[userId].calendarId
+      callback: (err, data)->
+        return console.log(err) if err
+        items = data.items.map((item)->
+          item.summary
+        ).join("\n")
+        console.log items
+        msg.reply items
 
