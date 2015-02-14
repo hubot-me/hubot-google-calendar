@@ -55,6 +55,9 @@ module.exports = (robot) ->
   robot.respond /gcal me/i, (msg)->
     gcal   = robot.brain.get('gcal')
     userId = msg.envelope.user.id
+    console.log "userId: ", userId
+    console.log "gcal[userId]: ", gcal[userId]
+    console.log "gcal[userId].calendarId: ", gcal[userId].calendarId
     robot.emit "googleapi:request",
       service: "calendar"
       version: "v3"
