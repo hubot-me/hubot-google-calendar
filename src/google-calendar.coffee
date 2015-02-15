@@ -39,7 +39,7 @@ module.exports = (robot) ->
   #   #
   #   #   update their status.
 
-  robot.respond /gcal set (.*)/i, (msg)->
+  robot.respond /gcal calendar (.*)/i, (msg)->
     console.log msg
     console.log robot
     # in the brain, set the calendar name for that user to msg.match[1]
@@ -51,6 +51,22 @@ module.exports = (robot) ->
       calendarId: calendarId
 
     robot.brain.set 'gcal', gcal
+    robot.reply "OK, set your calendar to #{calendarId}"
+
+  robot.respond /gcal look (.*) days ahead/, (msg)->
+    daysAhead       = msg.match[1]
+    userId          = msg.envelope.user.id
+    gcal            = robot.brain.get('gcal') || {}
+    gcal[userId]    = gcal[userId] || {}
+
+    gcal[userId].id        = userId
+    gcal[userId].daysAhead = daysAhead
+    robot.reply "OK, your calendar, `gcal me` will show the next #{daysAhead} days"
+
+  # TODO: robot.respond /gcal auto/ # enable/disable auto away behavior
+  # TODO: robot.respond /gcal whereabouts/ # where is everyone
+  # TODO: link to hangout
+  # TODO: link to event on google calendar web
 
   robot.respond /gcal me/i, (msg)->
     moment = require('moment')
@@ -60,7 +76,8 @@ module.exports = (robot) ->
     console.log "gcal[userId]: ", gcal[userId]
     console.log "gcal[userId].calendarId: ", gcal[userId].calendarId
     now = moment().toISOString()
-    in24 = moment().add(1,'days').toISOString()
+    daysAhead = gcal[userId].daysAhead || 1
+    in24 = moment().add(daysAhead,'days').toISOString()
     console.log "now ISO: #{now}"
     console.log "in 24 hrs ISO: #{in24}"
     robot.emit "googleapi:request",
@@ -76,8 +93,12 @@ module.exports = (robot) ->
         items = data.items.map((item)->
           start = moment(item.start.dateTime).format('H:MM')
           end = moment(item.end.dateTime).format('H:MM')
-          "[#{start}-#{end}] \"#{item.summary}\" (#{item.location})"
+          "[#{start}-#{end}] '#{item.summary}' (#{item.location})"
         ).join("\n")
         console.log items
-        msg.reply items
+        message = if items.length > 0
+                    "In the next 24 Hrs: #{items}"
+                  else
+                    "Sorry, no scheduled events in next 24 hrs."
+        msg.reply message
 
