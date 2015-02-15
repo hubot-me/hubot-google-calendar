@@ -53,23 +53,30 @@ module.exports = (robot) ->
     robot.brain.set 'gcal', gcal
 
   robot.respond /gcal me/i, (msg)->
+    moment = require('moment')
     gcal   = robot.brain.get('gcal')
     userId = msg.envelope.user.id
     console.log "userId: ", userId
     console.log "gcal[userId]: ", gcal[userId]
     console.log "gcal[userId].calendarId: ", gcal[userId].calendarId
+    now = moment().toISOString()
+    in24 = moment().add(1,'days').toISOString()
+    console.log "now ISO: #{now}"
+    console.log "in 24 hrs ISO: #{in24}"
     robot.emit "googleapi:request",
       service: "calendar"
       version: "v3"
       endpoint: "events.list"
       params:
-        timeMin: "2015-02-01T00:00:00.000Z"
-        timeMax: "2015-02-28T00:00:00.000Z"
+        timeMin: now
+        timeMax: in24
         calendarId: gcal[userId].calendarId
       callback: (err, data)->
         return console.log(err) if err
         items = data.items.map((item)->
-          item.summary
+          start = moment(item.start.dateTime).format('H:MM')
+          end = moment(item.end.dateTime).format('H:MM')
+          "[#{start}-#{end}] \"#{item.summary}\" (#{item.location})"
         ).join("\n")
         console.log items
         msg.reply items
