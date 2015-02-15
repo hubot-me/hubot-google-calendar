@@ -17,6 +17,7 @@
 
 module.exports = (robot) ->
 
+  require('moment-timezone')
   # CronJob = require('cron').CronJob
   #
   # checkCalendars = new CronJob("0,5,10,15,20,25,30,35,40,45,50,55  * * * *", ()->
@@ -65,24 +66,22 @@ module.exports = (robot) ->
 
   # TODO: robot.respond /gcal auto/ # enable/disable auto away behavior
   # TODO: robot.respond /gcal whereabouts/ # where is everyone
+  # TODO: robot.respond /gcal timezone/ # make every effort to return the correct timezone - http://momentjs.com/timezone/
   # TODO: link to hangout
   # TODO: link to event on google calendar web
   # TODO: for recurring, make sure I'm showing the next occurrence, and all after that
   # TODO: remove locations for undefined locations
   # TODO: figure out why times are wrong....
+  # TODO: unless timeZone
+  #         message += "NOTE: set your timezone if the times aren't local with `gcal timezone America/Los_Angeles`"
 
   robot.respond /gcal me/i, (msg)->
     moment = require('moment')
     gcal   = robot.brain.get('gcal')
     userId = msg.envelope.user.id
-    console.log "userId: ", userId
-    console.log "gcal[userId]: ", gcal[userId]
-    console.log "gcal[userId].calendarId: ", gcal[userId].calendarId
     now = moment().toISOString()
     daysAhead = gcal[userId].daysAhead || 1
     in24 = moment().add(daysAhead,'days').toISOString()
-    console.log "now ISO: #{now}"
-    console.log "in 24 hrs ISO: #{in24}"
     robot.emit "googleapi:request",
       service: "calendar"
       version: "v3"
@@ -94,6 +93,8 @@ module.exports = (robot) ->
       callback: (err, data)->
         return console.log(err) if err
         console.log data.items
+        message = ""
+        timeZone = gcal[userId].timeZone
         items = data.items.map((item)->
           if item.start.date
             start = item.start.date
@@ -103,19 +104,24 @@ module.exports = (robot) ->
             start = item.start.dateTime
             end = item.end.dateTime
             format = 'M/D h:mm'
-          start = moment(start).format(format)
-          end = moment(end).format(format)
 
-          entry =  "[#{start}-#{end}]  #{item.summary}\n"
+          start = moment(start)
+          start = start.tz(timeZone || item.start.timeZone) if item.start.timeZone
+
+          end = moment(end)
+          end = end.tz(timeZone || item.end.timeZone) if item.end.timeZone
+
+          entry =  "[#{start.format(format)}-#{end.format(format)}]  #{item.summary}\n"
+          # entry += "[#{start.toString()}-#{end.toString()}]\n"
           entry += "(#{item.location})\n" if item.location
           entry += "event   => #{item.htmlLink}\n"
           entry += "hangout => #{item.hangoutLink}\n" if item.hangoutLink
           entry
         ).join("\n")
         console.log items
-        message = if items.length > 0
-                    "In the next #{daysAhead} day(s): \n#{items}"
-                  else
-                    "Sorry, no scheduled events in next 24 hrs."
+        message += if items.length > 0
+                     "In the next #{daysAhead} day(s): \n#{items}"
+                   else
+                     "Sorry, no scheduled events in next #{daysAhead} days."
         msg.reply message
 

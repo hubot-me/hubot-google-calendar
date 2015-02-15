@@ -19,7 +19,8 @@
     "coffee-script": "~1.6",
     "cheerio": "~0.18.0",
     "cron": "~1.0.6",
-    "moment": "~2.9.0"
+    "moment": "~2.9.0",
+    "moment-timezone": "~0.3.0"
   },
   "devDependencies": {
     "mocha": "*",
