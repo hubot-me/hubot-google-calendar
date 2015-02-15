@@ -106,10 +106,10 @@ module.exports = (robot) ->
             format = 'M/D h:mm'
 
           start = moment(start)
-          start = start.tz(timeZone || item.start.timeZone) if item.start.timeZone
+          start = start.tz(timeZone || item.start.timeZone || 'America/New_York')
 
           end = moment(end)
-          end = end.tz(timeZone || item.end.timeZone) if item.end.timeZone
+          end = end.tz(timeZone || item.end.timeZone || 'America/New_York')
 
           entry =  "[#{start.format(format)}-#{end.format(format)}]  #{item.summary}\n"
           # entry += "[#{start.toString()}-#{end.toString()}]\n"
