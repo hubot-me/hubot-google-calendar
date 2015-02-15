@@ -91,13 +91,13 @@ module.exports = (robot) ->
       callback: (err, data)->
         return console.log(err) if err
         items = data.items.map((item)->
-          start = moment(item.start.dateTime).format('H:MM')
-          end = moment(item.end.dateTime).format('H:MM')
+          start = moment(item.start.dateTime).format('M/D h:mm')
+          end = moment(item.end.dateTime).format('M/D h:mm')
           "[#{start}-#{end}] '#{item.summary}' (#{item.location})"
         ).join("\n")
         console.log items
         message = if items.length > 0
-                    "In the next 24 Hrs: #{items}"
+                    "In the next #{daysAhead} day(s): \n#{items}"
                   else
                     "Sorry, no scheduled events in next 24 hrs."
         msg.reply message
