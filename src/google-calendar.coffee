@@ -106,8 +106,10 @@ module.exports = (robot) ->
           start = moment(start).format(format)
           end = moment(end).format(format)
 
-          entry =  "[#{start}-#{end}] '#{item.summary}'"
+          summaryLink = "<a href='#{item.htmlLink}'>#{item.summary}</a>"
+          entry =  "[#{start}-#{end}] #{summaryLink}"
           entry += " (#{item.location})" if item.location
+          entry += " <a href='#{item.hangoutLink}'>hangout</a>" if item.hangoutLink
           entry
         ).join("\n")
         console.log items
