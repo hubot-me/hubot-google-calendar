@@ -62,18 +62,23 @@ module.exports = (robot) ->
 
     gcal[userId].id        = userId
     gcal[userId].daysAhead = daysAhead
-    robot.reply "OK, your calendar, `gcal me` will show the next #{daysAhead} days"
+    robot.reply "OK, your calendar, `gcal me` will show the next #{daysAhead} days."
 
   # TODO: robot.respond /gcal auto/ # enable/disable auto away behavior
   # TODO: robot.respond /gcal whereabouts/ # where is everyone
-  # TODO: robot.respond /gcal timezone/ # make every effort to return the correct timezone - http://momentjs.com/timezone/
-  # TODO: link to hangout
-  # TODO: link to event on google calendar web
   # TODO: for recurring, make sure I'm showing the next occurrence, and all after that
-  # TODO: remove locations for undefined locations
-  # TODO: figure out why times are wrong....
-  # TODO: unless timeZone
-  #         message += "NOTE: set your timezone if the times aren't local with `gcal timezone America/Los_Angeles`"
+
+  # make every effort to return the correct timezone - http://momentjs.com/timezone/
+  robot.respond /gcal timezone (.*)/, (msg)->
+    timeZone     = msg.match[1]
+    userId       = msg.envelope.user.id
+    gcal         = robot.brain.get('gcal') || {}
+    gcal[userId] = gcal[userId] || {}
+
+    gcal[userId].id       = userId
+    gcal[userId].timeZone = timeZone
+    robot.reply "OK, your calendar, `gcal me` will reflect your timzone, #{timeZone}."
+
 
   robot.respond /gcal me/i, (msg)->
     moment = require('moment')
