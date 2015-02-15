@@ -93,16 +93,22 @@ module.exports = (robot) ->
         calendarId: gcal[userId].calendarId
       callback: (err, data)->
         return console.log(err) if err
+        console.log data.items
         items = data.items.map((item)->
-          start = item.start.date || item.start.dateTime
-          end = item.end.date || item.end.dateTime
-          format = 'M/D'
-          format += ' h:mm' if start.dateTime
+          if item.start.date
+            start = item.start.date
+            end = item.end.date
+            format = 'M/D'
+          else
+            start = item.start.dateTime
+            end = item.end.dateTime
+            format = 'M/D h:mm'
           start = moment(start).format(format)
           end = moment(end).format(format)
-          entry =  "[#{start}-#{end}] "
-          entry += "'#{item.summary}'"
-          entry += "(#{item.location})" if item.location
+
+          entry =  "[#{start}-#{end}] '#{item.summary}'"
+          entry += " (#{item.location})" if item.location
+          entry
         ).join("\n")
         console.log items
         message = if items.length > 0
