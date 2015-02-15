@@ -67,6 +67,9 @@ module.exports = (robot) ->
   # TODO: robot.respond /gcal whereabouts/ # where is everyone
   # TODO: link to hangout
   # TODO: link to event on google calendar web
+  # TODO: for recurring, make sure I'm showing the next occurrence, and all after that
+  # TODO: remove locations for undefined locations
+  # TODO: figure out why times are wrong....
 
   robot.respond /gcal me/i, (msg)->
     moment = require('moment')
@@ -91,9 +94,15 @@ module.exports = (robot) ->
       callback: (err, data)->
         return console.log(err) if err
         items = data.items.map((item)->
-          start = moment(item.start.dateTime).format('M/D h:mm')
-          end = moment(item.end.dateTime).format('M/D h:mm')
-          "[#{start}-#{end}] '#{item.summary}' (#{item.location})"
+          start = item.start.date || item.start.dateTime
+          end = item.end.date || item.end.dateTime
+          format = 'M/D'
+          format += ' h:mm' if start.dateTime
+          start = moment(start).format(format)
+          end = moment(end).format(format)
+          entry =  "[#{start}-#{end}] "
+          entry += "'#{item.summary}'"
+          entry += "(#{item.location})" if item.location
         ).join("\n")
         console.log items
         message = if items.length > 0
