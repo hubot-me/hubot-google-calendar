@@ -107,8 +107,8 @@ module.exports = (robot) ->
           end = moment(end).format(format)
 
           entry =  "[#{start}-#{end}]"
-          entry += " (#{item.location})\n" if item.location
-          entry += "#{item.summary} - #{item.htmlLink}\n"
+          entry += " (#{item.location})" if item.location
+          entry += "\n#{item.summary} - #{item.htmlLink}\n"
           entry += "hangout => #{item.hangoutLink}\n" if item.hangoutLink
           entry
         ).join("\n")
