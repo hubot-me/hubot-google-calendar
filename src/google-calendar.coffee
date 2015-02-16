@@ -83,6 +83,7 @@ module.exports = (robot) ->
       params:
         timeMin: now
         timeMax: in24
+        singleEvents: true
         calendarId: gcal[userId].calendarId
       callback: (err, data)->
         return console.log(err) if err
