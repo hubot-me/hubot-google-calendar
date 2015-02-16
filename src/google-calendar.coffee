@@ -70,9 +70,9 @@ module.exports = (robot) ->
   # return the calendar events for the immediate future
   robot.respond /gcal me/i, (msg)->
     userId = msg.envelope.user.id
-    unless userId
-      msg.reply "You need to set your calendar with my.email@example.com first"
     gcal = robot.brain.get('gcal')
+    unless gcal[userId]
+      msg.reply "You need to set your calendar with my.email@example.com first"
     now = moment().toISOString()
     daysAhead = gcal[userId].daysAhead || 1
     in24 = moment().add(daysAhead,'days').toISOString()
