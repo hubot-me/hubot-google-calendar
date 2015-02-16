@@ -46,7 +46,7 @@ module.exports = (robot) ->
     robot.brain.set 'gcal', gcal
     robot.reply "OK, set your calendar to #{calendarId}"
 
-  robot.respond /gcal look (.*) days ahead/, (msg)->
+  robot.respond /gcal look (.*) day?s ahead/, (msg)->
     daysAhead       = msg.match[1]
     userId          = msg.envelope.user.id
     gcal            = robot.brain.get('gcal') || {}
