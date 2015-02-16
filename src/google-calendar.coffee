@@ -31,7 +31,6 @@ module.exports = (robot) ->
 
   moment = require('moment')
   require('moment-timezone')
-  _ = require('lodash')
 
   robot.respond /gcal calendar (.*)/i, (msg)->
     console.log msg
@@ -85,36 +84,34 @@ module.exports = (robot) ->
         timeMin: now
         timeMax: in24
         calendarId: gcal[userId].calendarId
-        singleEvents: true
       callback: (err, data)->
         return console.log(err) if err
         console.log data.items
         message = ""
         timeZone = gcal[userId].timeZone
-        items = _
-          .map(data.items, (item)->
-            if item.start.date
-              start = item.start.date
-              end = item.end.date
-              format = 'M/D'
-            else
-              start = item.start.dateTime
-              end = item.end.dateTime
-              format = 'M/D h:mm'
+        items = data.items.map((item)->
+          if item.start.date
+            start = item.start.date
+            end = item.end.date
+            format = 'M/D'
+          else
+            start = item.start.dateTime
+            end = item.end.dateTime
+            format = 'M/D h:mm'
 
-            start = moment(start)
-            start = start.tz(timeZone || item.start.timeZone || 'America/New_York')
+          start = moment(start)
+          start = start.tz(timeZone || item.start.timeZone || 'America/New_York')
 
-            end = moment(end)
-            end = end.tz(timeZone || item.end.timeZone || 'America/New_York')
+          end = moment(end)
+          end = end.tz(timeZone || item.end.timeZone || 'America/New_York')
 
-            entry =  "[#{start.format(format)}-#{end.format(format)}]  #{item.summary}\n"
-            # entry += "[#{start.toString()}-#{end.toString()}]\n"
-            entry += "(#{item.location})\n" if item.location
-            entry += "event   => #{item.htmlLink}\n"
-            entry += "hangout => #{item.hangoutLink}\n" if item.hangoutLink
-            entry
-          .join "\n"
+          entry =  "[#{start.format(format)}-#{end.format(format)}]  #{item.summary}\n"
+          # entry += "[#{start.toString()}-#{end.toString()}]\n"
+          entry += "(#{item.location})\n" if item.location
+          entry += "event   => #{item.htmlLink}\n"
+          entry += "hangout => #{item.hangoutLink}\n" if item.hangoutLink
+          entry
+        ).join("\n")
         console.log items
         message += if items.length > 0
                      "In the next #{daysAhead} day(s): \n#{items}"

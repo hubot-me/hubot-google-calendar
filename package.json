@@ -20,8 +20,7 @@
     "cheerio": "~0.18.0",
     "cron": "~1.0.6",
     "moment": "~2.9.0",
-    "moment-timezone": "~0.3.0",
-    "lodash": "~3.2.0"
+    "moment-timezone": "~0.3.0"
   },
   "devDependencies": {
     "mocha": "*",
