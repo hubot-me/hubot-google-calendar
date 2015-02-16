@@ -90,11 +90,8 @@ module.exports = (robot) ->
         console.log data.items
         message = ""
         timeZone = gcal[userId].timeZone
-        items = _.chain(data.items)
-          .reject (item)->
-            console.log("endTime:", item.end.date || item.end.dateTime)
-            moment() > moment(item.end.date || item.end.dateTime)
-          .map (item)->
+        items = _
+          .map(data.items, (item)->
             if item.start.date
               start = item.start.date
               end = item.end.date
