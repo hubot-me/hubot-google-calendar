@@ -16,14 +16,22 @@
 #   hubot gcal me - "Retrieves the events for the immediate future (defaults to a day)."
 #   hubot gcal calendar some.calendar@example.com - "Sets the calendar for the current user."
 #   hubot gcal look 10 days ahead - "Calls to `gcal me` will return 10 days worth of events."
-#   hubot gcal timezone America/Phoenix - "Sets the timezone for the current user."
+#   hubo gcal timezone America/Phoenix - "Sets the timezone for the current user."
 #
 # Author:
 #   hubot-me
 
+# TODO: robot.respond /gcal auto/ # enable/disable auto away behavior
+# TODO: robot.respond /gcal whereabouts/ # where is everyone
+# TODO: for recurring, make sure I'm showing the next occurrence, and all after that
+# TODO: set the cron interval for auto-away status updates
+# TODO: discard events not in the future
+
 module.exports = (robot) ->
 
+  moment = require('moment')
   require('moment-timezone')
+  _ = require('lodash')
 
   robot.respond /gcal calendar (.*)/i, (msg)->
     console.log msg
@@ -49,11 +57,6 @@ module.exports = (robot) ->
     gcal[userId].daysAhead = daysAhead
     msg.reply "OK, your calendar, `gcal me` will show the next #{daysAhead} days."
 
-  # TODO: robot.respond /gcal auto/ # enable/disable auto away behavior
-  # TODO: robot.respond /gcal whereabouts/ # where is everyone
-  # TODO: for recurring, make sure I'm showing the next occurrence, and all after that
-  # TODO: set the cron interval for auto-away status updates
-
   # make every effort to return the correct timezone - http://momentjs.com/timezone/
   robot.respond /gcal timezone (.*)/, (msg)->
     timeZone     = msg.match[1]
@@ -65,11 +68,12 @@ module.exports = (robot) ->
     gcal[userId].timeZone = timeZone
     msg.reply "OK, your calendar, `gcal me` will reflect your timzone, #{timeZone}."
 
-
+  # return the calendar events for the immediate future
   robot.respond /gcal me/i, (msg)->
-    moment = require('moment')
-    gcal   = robot.brain.get('gcal')
     userId = msg.envelope.user.id
+    unless userId
+      msg.reply "You need to set your calendar with my.email@example.com first"
+    gcal = robot.brain.get('gcal')
     now = moment().toISOString()
     daysAhead = gcal[userId].daysAhead || 1
     in24 = moment().add(daysAhead,'days').toISOString()
@@ -86,29 +90,33 @@ module.exports = (robot) ->
         console.log data.items
         message = ""
         timeZone = gcal[userId].timeZone
-        items = data.items.map((item)->
-          if item.start.date
-            start = item.start.date
-            end = item.end.date
-            format = 'M/D'
-          else
-            start = item.start.dateTime
-            end = item.end.dateTime
-            format = 'M/D h:mm'
+        items = _.chain(data.items)
+          .reject (item)->
+            console.log("endTime:", item.end.date || item.end.dateTime)
+            moment() > moment(item.end.date || item.end.dateTime)
+          .map (item)->
+            if item.start.date
+              start = item.start.date
+              end = item.end.date
+              format = 'M/D'
+            else
+              start = item.start.dateTime
+              end = item.end.dateTime
+              format = 'M/D h:mm'
 
-          start = moment(start)
-          start = start.tz(timeZone || item.start.timeZone || 'America/New_York')
+            start = moment(start)
+            start = start.tz(timeZone || item.start.timeZone || 'America/New_York')
 
-          end = moment(end)
-          end = end.tz(timeZone || item.end.timeZone || 'America/New_York')
+            end = moment(end)
+            end = end.tz(timeZone || item.end.timeZone || 'America/New_York')
 
-          entry =  "[#{start.format(format)}-#{end.format(format)}]  #{item.summary}\n"
-          # entry += "[#{start.toString()}-#{end.toString()}]\n"
-          entry += "(#{item.location})\n" if item.location
-          entry += "event   => #{item.htmlLink}\n"
-          entry += "hangout => #{item.hangoutLink}\n" if item.hangoutLink
-          entry
-        ).join("\n")
+            entry =  "[#{start.format(format)}-#{end.format(format)}]  #{item.summary}\n"
+            # entry += "[#{start.toString()}-#{end.toString()}]\n"
+            entry += "(#{item.location})\n" if item.location
+            entry += "event   => #{item.htmlLink}\n"
+            entry += "hangout => #{item.hangoutLink}\n" if item.hangoutLink
+            entry
+          .join "\n"
         console.log items
         message += if items.length > 0
                      "In the next #{daysAhead} day(s): \n#{items}"
