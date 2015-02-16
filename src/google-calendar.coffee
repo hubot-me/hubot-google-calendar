@@ -1,44 +1,29 @@
 # Description:
-#   Say Hi to Hubot.
+#   Get google calendar information from Hubot
 #
 # Dependencies:
-#   None
+#   "coffee-script": "~1.6",
+#   "moment": "~2.9.0",
+#   "moment-timezone": "~0.3.0"
+#   "hubot-googleapis": "~0.2.0"
 #
 # Configuration:
-#   None
+#   GOOGLE_API_CLIENT_ID      # hubot-googleapi
+#   GOOGLE_API_CLIENT_SECRET  # hubot-googleapi
+#   GOOGLE_API_SCOPES         # hubot-googleapi
 #
 # Commands:
-#   hubot hello - "hello!"
-#   hubot orly - "yarly"
+#   hubot gcal me - "Retrieves the events for the immediate future (defaults to a day)."
+#   hubot gcal calendar some.calendar@example.com - "Sets the calendar for the current user."
+#   hubot gcal look 10 days ahead - "Calls to `gcal me` will return 10 days worth of events."
+#   hubot gcal timezone America/Phoenix - "Sets the timezone for the current user."
 #
 # Author:
-#   tombell
-
+#   hubot-me
 
 module.exports = (robot) ->
 
   require('moment-timezone')
-  # CronJob = require('cron').CronJob
-  #
-  # checkCalendars = new CronJob("0,5,10,15,20,25,30,35,40,45,50,55  * * * *", ()->
-  #   # login to google calendars, refresh token if necessary
-  #   #
-  #   # for every user that is currently showing as available and has enabled gcal,
-  #   #
-  #   # robot.emit "googleapi:request",
-  #   #   service: "analytics"
-  #   #   version: "v3"
-  #   #   endpoint: "management.profiles.list"
-  #   #   params:                               # parameters to pass to API
-  #   #   accountId: '~all'
-  #   #   webPropertyId: '~all'
-  #   #   callback: (err, data)->               # node-style callback
-  #   #     return console.log(err) if err
-  #   #     console.log data.items.map((item)->
-  #   #     "#{item.name} - #{item.websiteUrl}"
-  #   #     ).join("\n")
-  #   #
-  #   #   update their status.
 
   robot.respond /gcal calendar (.*)/i, (msg)->
     console.log msg
@@ -62,11 +47,12 @@ module.exports = (robot) ->
 
     gcal[userId].id        = userId
     gcal[userId].daysAhead = daysAhead
-    robot.reply "OK, your calendar, `gcal me` will show the next #{daysAhead} days."
+    msg.reply "OK, your calendar, `gcal me` will show the next #{daysAhead} days."
 
   # TODO: robot.respond /gcal auto/ # enable/disable auto away behavior
   # TODO: robot.respond /gcal whereabouts/ # where is everyone
   # TODO: for recurring, make sure I'm showing the next occurrence, and all after that
+  # TODO: set the cron interval for auto-away status updates
 
   # make every effort to return the correct timezone - http://momentjs.com/timezone/
   robot.respond /gcal timezone (.*)/, (msg)->
@@ -77,7 +63,7 @@ module.exports = (robot) ->
 
     gcal[userId].id       = userId
     gcal[userId].timeZone = timeZone
-    robot.reply "OK, your calendar, `gcal me` will reflect your timzone, #{timeZone}."
+    msg.reply "OK, your calendar, `gcal me` will reflect your timzone, #{timeZone}."
 
 
   robot.respond /gcal me/i, (msg)->
